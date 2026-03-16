@@ -104,20 +104,28 @@ export default function StudentClient({ hostId, nickname }: StudentClientProps) 
   if (showAnswers && gameData) {
     return (
       <div className="min-h-screen bg-stone-900 text-white flex flex-col font-sans p-6">
-        <div className="max-w-4xl mx-auto w-full">
-          <h2 className="text-4xl font-black mb-8 text-emerald-400 uppercase tracking-tighter border-b-4 border-emerald-400 pb-4">
-            Quiz Answer Key
-          </h2>
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="flex justify-between items-center mb-8 border-b-4 border-emerald-400 pb-4">
+            <h2 className="text-4xl font-black text-emerald-400 uppercase tracking-tighter">
+              Quiz Results & Comparison
+            </h2>
+            <div className="text-stone-400 font-bold uppercase tracking-widest text-sm">
+              {nickname}님의 결과
+            </div>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-xl font-bold mb-4 uppercase text-stone-400 tracking-widest">Correct Answers</h3>
-              <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            {/* Correct Answers List */}
+            <div className="lg:col-span-1">
+              <h3 className="text-xl font-bold mb-4 uppercase text-stone-400 tracking-widest flex items-center gap-2">
+                <ListChecks size={20} className="text-emerald-400" /> Answer Key
+              </h3>
+              <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {gameData.quizzes.map(quiz => (
-                  <div key={quiz.id} className="bg-stone-800 p-4 rounded-xl flex items-center justify-between border border-stone-700">
-                    <span className="font-black text-emerald-400 w-8">{quiz.id}.</span>
-                    <span className="flex-1 px-4 text-sm font-medium">{quiz.question}</span>
-                    <span className={`font-black text-xl ${quiz.answer === 'O' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div key={quiz.id} className="bg-stone-800/50 p-3 rounded-xl flex items-center justify-between border border-stone-700/50">
+                    <span className="font-black text-emerald-400 w-6 text-sm">{quiz.id}.</span>
+                    <span className="flex-1 px-3 text-xs font-medium text-stone-300 truncate">{quiz.question}</span>
+                    <span className={`font-black text-lg ${quiz.answer === 'O' ? 'text-emerald-400' : 'text-red-400'}`}>
                       {quiz.answer}
                     </span>
                   </div>
@@ -125,36 +133,68 @@ export default function StudentClient({ hostId, nickname }: StudentClientProps) 
               </div>
             </div>
 
-            <div>
-              <h3 className="text-xl font-bold mb-4 uppercase text-stone-400 tracking-widest">Completed Pixel Art</h3>
-              <div className="bg-stone-800 p-6 rounded-3xl border-2 border-stone-700 shadow-2xl">
-                <div 
-                  className="grid gap-0.5"
-                  style={{ 
-                    gridTemplateColumns: `repeat(${gameData.grid[0].length}, 1fr)`,
-                    aspectRatio: `${gameData.grid[0].length} / ${gameData.grid.length}`
-                  }}
-                >
-                  {gameData.grid.map((row, r) => (
-                    row.map((quizId, c) => {
-                      const quiz = gameData.quizzes.find(q => q.id === quizId);
-                      const isCorrect = quiz?.answer === 'O';
-                      return (
-                        <div 
-                          key={`${r}-${c}`}
-                          className={`w-full h-full ${isCorrect ? 'bg-emerald-500' : 'bg-stone-700/30'}`}
-                        />
-                      );
-                    })
-                  ))}
+            {/* Grids Comparison */}
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* My Result */}
+              <div className="flex flex-col">
+                <h3 className="text-xl font-bold mb-4 uppercase text-stone-400 tracking-widest text-center">My Result</h3>
+                <div className="bg-stone-800 p-4 rounded-3xl border-2 border-stone-700 shadow-2xl flex-1">
+                  <div 
+                    className="grid gap-0.5"
+                    style={{ 
+                      gridTemplateColumns: `repeat(${gameData.grid[0].length}, 1fr)`,
+                      aspectRatio: `${gameData.grid[0].length} / ${gameData.grid.length}`
+                    }}
+                  >
+                    {gameData.grid.map((row, r) => (
+                      row.map((_, c) => {
+                        const isColored = coloredCells.has(`${r}-${c}`);
+                        return (
+                          <div 
+                            key={`my-${r}-${c}`}
+                            className={`w-full h-full ${isColored ? 'bg-blue-400' : 'bg-stone-700/20'}`}
+                          />
+                        );
+                      })
+                    ))}
+                  </div>
                 </div>
+                <p className="text-center text-[10px] text-stone-500 mt-2 uppercase font-bold">내가 칠한 칸</p>
+              </div>
+
+              {/* Correct Result */}
+              <div className="flex flex-col">
+                <h3 className="text-xl font-bold mb-4 uppercase text-emerald-400 tracking-widest text-center">Correct Result</h3>
+                <div className="bg-stone-800 p-4 rounded-3xl border-2 border-emerald-900/50 shadow-2xl flex-1">
+                  <div 
+                    className="grid gap-0.5"
+                    style={{ 
+                      gridTemplateColumns: `repeat(${gameData.grid[0].length}, 1fr)`,
+                      aspectRatio: `${gameData.grid[0].length} / ${gameData.grid.length}`
+                    }}
+                  >
+                    {gameData.grid.map((row, r) => (
+                      row.map((quizId, c) => {
+                        const quiz = gameData.quizzes.find(q => q.id === quizId);
+                        const isCorrect = quiz?.answer === 'O';
+                        return (
+                          <div 
+                            key={`correct-${r}-${c}`}
+                            className={`w-full h-full ${isCorrect ? 'bg-emerald-500' : 'bg-stone-700/20'}`}
+                          />
+                        );
+                      })
+                    ))}
+                  </div>
+                </div>
+                <p className="text-center text-[10px] text-emerald-900 mt-2 uppercase font-bold">정답 도안</p>
               </div>
             </div>
           </div>
           
           <button 
             onClick={() => window.location.reload()}
-            className="mt-12 w-full py-4 bg-white text-stone-900 rounded-2xl font-black text-xl hover:bg-stone-200 transition-all"
+            className="w-full py-5 bg-white text-stone-900 rounded-2xl font-black text-xl hover:bg-stone-200 transition-all shadow-[0_8px_0_0_#d6d3d1] active:shadow-none active:translate-y-2"
           >
             메인 화면으로 돌아가기
           </button>
