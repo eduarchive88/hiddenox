@@ -12,11 +12,18 @@ export const parseExcel = async (file: File): Promise<GameData> => {
         // Sheet 1: Quizzes
         const quizSheet = workbook.Sheets[workbook.SheetNames[0]];
         const quizRows = XLSX.utils.sheet_to_json<any>(quizSheet);
-        const quizzes: Quiz[] = quizRows.map((row: any) => ({
-          id: parseInt(row['번호'] || row['id']),
-          question: row['문제내용'] || row['question'],
-          answer: (row['정답'] || row['answer']).toString().toUpperCase() as 'O' | 'X'
-        }));
+        
+        const quizzes: Quiz[] = quizRows
+          .filter((row: any) => {
+            const question = row['문제내용'] || row['question'];
+            const answer = row['정답'] || row['answer'];
+            return question && answer; // Only include rows with both question and answer
+          })
+          .map((row: any) => ({
+            id: parseInt(row['번호'] || row['id'] || '0'),
+            question: (row['문제내용'] || row['question']).toString(),
+            answer: (row['정답'] || row['answer']).toString().toUpperCase().trim() as 'O' | 'X'
+          }));
 
         // Sheet 2: Grid
         const gridSheet = workbook.Sheets[workbook.SheetNames[1]];
